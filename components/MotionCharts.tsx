@@ -1,0 +1,8 @@
+"use client";
+import { useEffect, useRef } from "react";
+import type { State } from "../lib/motion";
+export default function MotionCharts({data}:{data:(State&{t:number})[]}){
+ const refs=[useRef<HTMLDivElement>(null),useRef<HTMLDivElement>(null),useRef<HTMLDivElement>(null)];
+ useEffect(()=>{let disposed=false; (async()=>{const [{default:Plotly},math]=await Promise.all([import("plotly.js-dist-min"),import("mathjs")]); if(disposed)return; const axes:[string,string,string][]=[["x","Posición (m)","#e76f32"],["v","Velocidad (m/s)","#718355"],["a","Aceleración (m/s²)","#4b6250"]]; for(let i=0;i<3;i++){const el=refs[i].current;if(!el)continue;const [key,label,color]=axes[i];const trace={x:data.map(d=>d.t),y:data.map(d=>d[key as keyof typeof d] as number),type:"scatter",mode:"lines",line:{color,width:3},fill:"tozeroy",fillcolor:color+"18",hovertemplate:`t = %{x:.2f} s<br>${label}: %{y:.2f}<extra></extra>`};await Plotly.react(el,[trace],{margin:{l:56,r:14,t:10,b:44},paper_bgcolor:"#fffdf8",plot_bgcolor:"#fffdf8",font:{color:"#62675e",family:"system-ui",size:11},xaxis:{title:{text:"Tiempo (s)"},gridcolor:"#ece8df",zerolinecolor:"#d4cec0"},yaxis:{title:{text:label},gridcolor:"#ece8df",zerolinecolor:"#d4cec0",rangemode:"tozero"},showlegend:false,hovermode:"x unified"},{responsive:true,displaylogo:false});}})();return()=>{disposed=true;refs.forEach(r=>{if(r.current)import("plotly.js-dist-min").then(m=>m.default.purge(r.current!))})}},[data]);
+ return <div className="chart-grid">{[["Posición · tiempo","x"],["Velocidad · tiempo","v"],["Aceleración · tiempo","a"]].map(([title,key],i)=><article className="chart-card" key={key}><h3>{title}</h3><div ref={refs[i]} className="plot" aria-label={`Gráfica de ${title.toLowerCase()}`} role="img"/></article>)}</div>
+}
